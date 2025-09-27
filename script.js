@@ -45,72 +45,139 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
-// Initialize Leaflet map with OpenStreetMap tiles
+
+// --- Real nearby bus stops using Overpass API ---
 window.addEventListener('DOMContentLoaded', function() {
-    var map = L.map('map').setView([17.3850, 78.4867], 11); // Hyderabad
+    // Initialize Leaflet map
+    var map = L.map('map').fitWorld();
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    // Static demo bus stops (could be replaced with API data)
-    var busStops = [
-        { name: 'Ameerpet Metro', lat: 17.4375, lng: 78.4483, routes: '100V, 216' },
-        { name: 'Panjagutta', lat: 17.4275, lng: 78.4482, routes: '290U, 8A' },
-        { name: 'Banjara Hills', lat: 17.4140, lng: 78.4346, routes: '100V, 216, 290U' },
-        { name: 'Kazipet Bus Stop', lat: 17.9774, lng: 79.4981, routes: 'TSRTC, 2, 5, 7' }
-    ];
-
-
-    // Haversine formula to calculate distance between two lat/lng points in meters
-    function getDistanceFromLatLonInMeters(lat1, lon1, lat2, lon2) {
-        var R = 6371000; // Radius of the earth in meters
-        var dLat = (lat2 - lat1) * Math.PI / 180;
-        var dLon = (lon2 - lon1) * Math.PI / 180;
-        var a =
-            0.5 - Math.cos(dLat)/2 +
-            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-            (1 - Math.cos(dLon))/2;
-        return R * 2 * Math.asin(Math.sqrt(a));
+    // Function to calculate distance between two lat/lon points
+    function getDistanceFromLatLonInM(lat1, lon1, lat2, lon2) {
+        function deg2rad(deg) { return deg * (Math.PI/180); }
+        var R = 6371000; // Radius of earth in meters
+        var dLat = deg2rad(lat2-lat1);
+        var dLon = deg2rad(lon2-lon1);
+        var a = 
+            Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+        var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        var d = R * c; // Distance in meters
+        return Math.round(d);
     }
 
-    function addNearbyBusStopsToMap(centerLat, centerLng, radiusMeters) {
-        var found = false;
-        busStops.forEach(function(stop) {
-            var dist = getDistanceFromLatLonInMeters(centerLat, centerLng, stop.lat, stop.lng);
-            if (dist <= radiusMeters) {
-                var marker = L.marker([stop.lat, stop.lng]).addTo(map);
-                marker.bindPopup('<b>' + stop.name + '</b><br>Routes: ' + stop.routes + '<br>Distance: ' + Math.round(dist) + 'm');
-                found = true;
-            }
+    // Function to update nearby stops list in HTML
+    function updateStopsList(userLat, userLon, stops) {
+        const stopsContainer = document.querySelector('.stops-list');
+        stopsContainer.innerHTML = '';
+        stops.forEach(stop => {
+            const distance = getDistanceFromLatLonInM(userLat, userLon, stop.lat, stop.lon);
+            const stopName = stop.tags.name || 'Bus Stop';
+            const stopCard = document.createElement('div');
+            stopCard.className = 'stop-card';
+            stopCard.innerHTML = `
+                <span class="stop-name">${stopName}</span>
+                <span class="stop-distance">${distance} m away</span>
+                <span class="stop-routes">N/A</span>
+            `;
+            stopsContainer.appendChild(stopCard);
         });
-        // If no stops found nearby, show all as fallback and notify
-        if (!found) {
-            if (window.showNotification) {
-                showNotification('No bus stops found within ' + (radiusMeters/1000) + 'km. Showing all demo stops.');
-            }
-            busStops.forEach(function(stop) {
-                var marker = L.marker([stop.lat, stop.lng]).addTo(map);
-                marker.bindPopup('<b>' + stop.name + '</b><br>Routes: ' + stop.routes);
+    }
+
+
+    // Fetch all bus stops in Hyderabad bounding box for autocomplete (not just 5km)
+    let allStopNames = [];
+    function fetchAllBusStopsForAutocomplete() {
+        // India bounding box: (6.5, 68.1, 37.1, 97.4)
+        var query = `
+            [out:json][timeout:60];
+            node["highway"="bus_stop"](6.5,68.1,37.1,97.4);
+            out;
+        `;
+        var url = "https://overpass-api.de/api/interpreter?data=" + encodeURIComponent(query);
+        fetch(url)
+            .then(res => res.json())
+            .then(data => {
+                allStopNames = Array.from(new Set(data.elements.map(stop => stop.tags.name).filter(Boolean)));
+            })
+            .catch(err => console.error("Error fetching all bus stops for autocomplete:", err));
+    }
+    fetchAllBusStopsForAutocomplete();
+
+    // When location found
+    function onLocationFound(e) {
+        var lat = e.latitude;
+        var lon = e.longitude;
+        // Add user location marker
+        L.marker([lat, lon]).addTo(map).bindPopup("You are here").openPopup();
+        // Overpass API query for bus stops within 5 km (for map/nearby only)
+        var query = `
+            [out:json];
+            node["highway"="bus_stop"](around:5000, ${lat}, ${lon});
+            out;
+        `;
+        var url = "https://overpass-api.de/api/interpreter?data=" + encodeURIComponent(query);
+        fetch(url)
+            .then(res => res.json())
+            .then(data => {
+                data.elements.forEach(stop => {
+                    // Add marker on map
+                    L.marker([stop.lat, stop.lon])
+                        .addTo(map)
+                        .bindPopup(stop.tags.name || "Bus Stop");
+                });
+                // Update nearby stops list
+                updateStopsList(lat, lon, data.elements);
+            })
+            .catch(err => console.error("Error fetching bus stops:", err));
+
+        // --- Autocomplete for pickup/destination using all bus stop names ---
+        function setupStopAutocomplete(inputId, suggestionsId) {
+            const input = document.getElementById(inputId);
+            const suggestions = document.getElementById(suggestionsId);
+            input.addEventListener('input', function() {
+                const query = input.value.trim().toLowerCase();
+                suggestions.innerHTML = '';
+                if (query.length < 1) {
+                    suggestions.style.display = 'none';
+                    return;
+                }
+                var matches = allStopNames.filter(name => name.toLowerCase().includes(query)).slice(0, 8);
+                if (matches.length === 0) {
+                    suggestions.style.display = 'none';
+                    return;
+                }
+                matches.forEach(name => {
+                    const div = document.createElement('div');
+                    div.textContent = name;
+                    div.style.padding = '0.5rem 1rem';
+                    div.style.cursor = 'pointer';
+                    div.addEventListener('mousedown', function(e) {
+                        e.preventDefault();
+                        input.value = name;
+                        suggestions.style.display = 'none';
+                    });
+                    suggestions.appendChild(div);
+                });
+                suggestions.style.display = 'block';
+            });
+            input.addEventListener('blur', function() {
+                setTimeout(() => { suggestions.style.display = 'none'; }, 100);
             });
         }
+        setupStopAutocomplete('pickup-location', 'pickup-suggestions');
+        setupStopAutocomplete('destination-location', 'destination-suggestions');
     }
 
-    // Try to get user's real-time location
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(function(position) {
-            var lat = position.coords.latitude;
-            var lng = position.coords.longitude;
-            var marker = L.marker([lat, lng]).addTo(map);
-            marker.bindPopup("You are here").openPopup();
-            map.setView([lat, lng], 14);
-            addNearbyBusStopsToMap(lat, lng, 5000); // 5km radius
-        }, function(error) {
-            // If denied or error, show all stops near Hyderabad center
-            addNearbyBusStopsToMap(17.3850, 78.4867, 5000);
-            console.warn('Geolocation error:', error.message);
-        });
-    } else {
-        addNearbyBusStopsToMap(17.3850, 78.4867, 5000);
-    }
+    map.on('locationfound', onLocationFound);
+    map.on('locationerror', function(e){
+        alert("Could not get your location. Please enable location services.");
+    });
+
+    // Locate user
+    map.locate({setView: true, maxZoom: 16});
 });
