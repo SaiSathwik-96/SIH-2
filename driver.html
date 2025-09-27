@@ -4,15 +4,7 @@
   <meta charset="UTF-8">
   <title>Bus Driver Live Location</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="style.css">
-  <style>
-    body { font-family: Arial, sans-serif; padding: 2rem; }
-    .driver-container { max-width: 400px; margin: 2rem auto; background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); padding: 2rem; }
-    .driver-container h2 { text-align: center; margin-bottom: 1.5rem; }
-    .driver-container input { width: 100%; padding: 0.6rem; margin-bottom: 1rem; border-radius: 6px; border: 1px solid #d1d5db; font-size: 1rem; }
-    .driver-container button { width: 100%; background: #4e73df; color: #fff; border: none; border-radius: 6px; padding: 0.6rem; font-size: 1rem; font-weight: 500; cursor: pointer; }
-    #status { margin-top: 1rem; color: #1cc88a; text-align: center; }
-  </style>
+  <link rel="stylesheet" href="driver.css">
 </head>
 <body>
   <header class="main-header">
@@ -22,9 +14,9 @@
         <h1 style="margin:0;">HyderabadTransit</h1>
       </a>
       <div style="display:flex;align-items:center;gap:1rem;position:relative;">
-  <img id="profileIcon" src="https://img.icons8.com/ios-filled/40/4e73df/user-male-circle.png" alt="Profile" title="Driver Profile" style="width:40px;height:40px;border-radius:50%;background:#e3f0ff;box-shadow:0 1px 4px rgba(0,0,0,0.08);cursor:pointer;">
+        <img id="profileIcon" src="https://img.icons8.com/ios-filled/40/4e73df/user-male-circle.png" alt="Profile" title="Driver Profile" style="width:40px;height:40px;border-radius:50%;background:#e3f0ff;box-shadow:0 1px 4px rgba(0,0,0,0.08);cursor:pointer;">
         <div id="profileDropdown" style="display:none;position:absolute;right:0;top:110%;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.12);border-radius:7px;min-width:140px;z-index:1000;">
-          <div style="padding:0.8rem 1rem;border-bottom:1px solid #c73636;cursor:default;color:#4e73df;">Profile</div>
+          <a href="driver-profile.html" style="display:block;padding:0.8rem 1rem;border-bottom:1px solid #c73636;cursor:pointer;color:#4e73df;text-decoration:none;">Profile</a>
           <button id="logoutBtn" style="width:100%;background:none;border:none;padding:0.8rem 1rem;text-align:left;color:#d9534f;cursor:pointer;">Logout</button>
         </div>
       </div>
@@ -42,7 +34,7 @@
     <div id="status"></div>
   </div>
   <script>
-    // Profile dropdown logic
+    // Profile dropdown logic (profile link now in dropdown)
     document.addEventListener('DOMContentLoaded', function() {
       var icon = document.getElementById('profileIcon');
       var dropdown = document.getElementById('profileDropdown');

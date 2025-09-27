@@ -4,15 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - HyderabadTransit</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="admin.css">
 </head>
 <body>
     <header class="main-header">
-        <div class="container">
+        <div class="container" style="display:flex;align-items:center;justify-content:space-between;">
             <a href="index.html" style="display:flex;align-items:center;text-decoration:none;color:inherit;gap:1rem;">
                 <img src="https://img.icons8.com/ios-filled/50/ffffff/bus.png" alt="Bus Icon" class="logo">
                 <h1 style="margin:0;">HyderabadTransit Admin</h1>
             </a>
+            <button id="logout-btn" style="background:#e74a3b;color:#fff;padding:0.5rem 1.2rem;border:none;border-radius:5px;font-weight:600;cursor:pointer;margin-right: 10px;">Logout</button>
         </div>
     </header>
     <main>
@@ -83,6 +84,12 @@
     <!-- Leaflet.js removed -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+    // Logout button logic
+    document.getElementById('logout-btn').onclick = function() {
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.href = 'admin-signin.html';
+    };
     // Live bus locations list
     function renderBusLocations(buses) {
         const list = document.getElementById('bus-locations-list');

@@ -48,12 +48,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // --- Real nearby bus stops using Overpass API ---
 window.addEventListener('DOMContentLoaded', function() {
-    // Initialize Leaflet map
-    var map = L.map('map').fitWorld();
+    // Initialize Leaflet map instantly
+    var map = L.map('map').setView([17.3850, 78.4867], 11); // Default Hyderabad
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
         attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
+
+    // Show loading spinner for nearby stops immediately
+    const stopsContainer = document.querySelector('.stops-list');
+    if (stopsContainer) {
+        stopsContainer.innerHTML = '<div style="color:#888;padding:1rem;"><span class="spinner"></span> Loading nearby bus stops...</div>';
+    }
 
     // Function to calculate distance between two lat/lon points
     function getDistanceFromLatLonInM(lat1, lon1, lat2, lon2) {
@@ -74,6 +80,10 @@ window.addEventListener('DOMContentLoaded', function() {
     function updateStopsList(userLat, userLon, stops) {
         const stopsContainer = document.querySelector('.stops-list');
         stopsContainer.innerHTML = '';
+        if (!stops || stops.length === 0) {
+            stopsContainer.innerHTML = '<div style="color:#888;padding:1rem;">No nearby bus stops found.</div>';
+            return;
+        }
         stops.forEach(stop => {
             const distance = getDistanceFromLatLonInM(userLat, userLon, stop.lat, stop.lon);
             const stopName = stop.tags.name || 'Bus Stop';
@@ -112,50 +122,118 @@ window.addEventListener('DOMContentLoaded', function() {
     function onLocationFound(e) {
         var lat = e.latitude;
         var lon = e.longitude;
-        // Add user location marker
+        // Only update map view and add marker when location is found
+        map.setView([lat, lon], 14);
         L.marker([lat, lon]).addTo(map).bindPopup("You are here").openPopup();
-        // Overpass API query for bus stops within 5 km (for map/nearby only)
-        var query = `
-            [out:json];
-            node["highway"="bus_stop"](around:5000, ${lat}, ${lon});
-            out;
-        `;
-        var url = "https://overpass-api.de/api/interpreter?data=" + encodeURIComponent(query);
-        fetch(url)
-            .then(res => res.json())
-            .then(data => {
+        // Show loading while fetching
+        const stopsContainer = document.querySelector('.stops-list');
+        if (stopsContainer) {
+            stopsContainer.innerHTML = '<div style="color:#888;padding:1rem;">Loading nearby bus stops...</div>';
+        }
+        // Helper to fetch bus stops with fallback and dynamic radius
+        function fetchNearbyStops(radius, onSuccess, onFail) {
+            var query = `
+                [out:json];
+                node["highway"="bus_stop"](around:${radius}, ${lat}, ${lon});
+                out;
+            `;
+            var url1 = "https://overpass-api.de/api/interpreter?data=" + encodeURIComponent(query);
+            var url2 = "https://overpass.kumi.systems/api/interpreter?data=" + encodeURIComponent(query);
+            // Try first endpoint, then fallback
+            Promise.race([
+                fetch(url1).then(res => res.json()),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 10000))
+            ]).then(onSuccess).catch(() => {
+                // Try backup endpoint
+                Promise.race([
+                    fetch(url2).then(res => res.json()),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 10000))
+                ]).then(onSuccess).catch(onFail);
+            });
+        }
+        // Try 2km, then 5km if no stops found
+        fetchNearbyStops(2000, function(data) {
+            if (data.elements && data.elements.length > 0) {
                 data.elements.forEach(stop => {
-                    // Add marker on map
                     L.marker([stop.lat, stop.lon])
                         .addTo(map)
                         .bindPopup(stop.tags.name || "Bus Stop");
                 });
-                // Update nearby stops list
                 updateStopsList(lat, lon, data.elements);
-            })
-            .catch(err => console.error("Error fetching bus stops:", err));
+            } else {
+                // Try larger radius
+                fetchNearbyStops(5000, function(data2) {
+                    if (data2.elements && data2.elements.length > 0) {
+                        data2.elements.forEach(stop => {
+                            L.marker([stop.lat, stop.lon])
+                                .addTo(map)
+                                .bindPopup(stop.tags.name || "Bus Stop");
+                        });
+                        updateStopsList(lat, lon, data2.elements);
+                    } else {
+                        if (stopsContainer) {
+                            stopsContainer.innerHTML = '<div style="color:#888;padding:1rem;">No nearby bus stops found.</div>';
+                        }
+                    }
+                }, function() {
+                    if (stopsContainer) {
+                        stopsContainer.innerHTML = '<div style="color:#e74a3b;padding:1rem;">Failed to load nearby bus stops. Please try again later.</div>';
+                    }
+                });
+            }
+        }, function() {
+            if (stopsContainer) {
+                stopsContainer.innerHTML = '<div style="color:#e74a3b;padding:1rem;">Failed to load nearby bus stops. Please try again later.</div>';
+            }
+        });
+// Spinner CSS for loading
+const style = document.createElement('style');
+style.innerHTML = `
+.spinner {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    border: 3px solid #e0e0e0;
+    border-top: 3px solid #4e73df;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-right: 0.5rem;
+    vertical-align: middle;
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+`;
+document.head.appendChild(style);
 
         // --- Autocomplete for pickup/destination using all bus stop names ---
         function setupStopAutocomplete(inputId, suggestionsId) {
             const input = document.getElementById(inputId);
             const suggestions = document.getElementById(suggestionsId);
+            let selectedIndex = -1;
+            let currentMatches = [];
+
             input.addEventListener('input', function() {
                 const query = input.value.trim().toLowerCase();
                 suggestions.innerHTML = '';
+                selectedIndex = -1;
                 if (query.length < 1) {
                     suggestions.style.display = 'none';
                     return;
                 }
-                var matches = allStopNames.filter(name => name.toLowerCase().includes(query)).slice(0, 8);
-                if (matches.length === 0) {
+                currentMatches = allStopNames.filter(name => name.toLowerCase().includes(query)).slice(0, 8);
+                if (currentMatches.length === 0) {
                     suggestions.style.display = 'none';
                     return;
                 }
-                matches.forEach(name => {
+                currentMatches.forEach((name, idx) => {
                     const div = document.createElement('div');
                     div.textContent = name;
                     div.style.padding = '0.5rem 1rem';
                     div.style.cursor = 'pointer';
+                    div.tabIndex = 0;
+                    div.className = 'autocomplete-suggestion';
                     div.addEventListener('mousedown', function(e) {
                         e.preventDefault();
                         input.value = name;
@@ -165,6 +243,31 @@ window.addEventListener('DOMContentLoaded', function() {
                 });
                 suggestions.style.display = 'block';
             });
+
+            input.addEventListener('keydown', function(e) {
+                const items = suggestions.querySelectorAll('.autocomplete-suggestion');
+                if (!items.length || suggestions.style.display === 'none') return;
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    selectedIndex = (selectedIndex + 1) % items.length;
+                    items.forEach((item, idx) => {
+                        item.style.background = idx === selectedIndex ? '#e0e0e0' : '';
+                    });
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    selectedIndex = (selectedIndex - 1 + items.length) % items.length;
+                    items.forEach((item, idx) => {
+                        item.style.background = idx === selectedIndex ? '#e0e0e0' : '';
+                    });
+                } else if (e.key === 'Enter') {
+                    if (selectedIndex >= 0 && selectedIndex < items.length) {
+                        e.preventDefault();
+                        input.value = items[selectedIndex].textContent;
+                        suggestions.style.display = 'none';
+                    }
+                }
+            });
+
             input.addEventListener('blur', function() {
                 setTimeout(() => { suggestions.style.display = 'none'; }, 100);
             });

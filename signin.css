@@ -1,0 +1,137 @@
+/* Styles for driver-signin.html (driver sign-in page) and admin-signin.html */
+
+body {
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+    margin: 0;
+    background: #f7f9fa;
+    color: #222;
+}
+.main-header {
+    background: #33373f;
+    color: #fff;
+    padding: 1.2rem 0 1rem 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.header-flex {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+}
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-left: -90px;
+}
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-right: -90px;
+}
+.main-header .logo {
+    width: 40px;
+    height: 40px;
+}
+.main-header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: 1px;
+}
+.header-right #toggle-bandwidth {
+    padding: 0.3rem 0.7rem;
+    background: #fff;
+    color: #1cc88a;
+    border: none;
+    border-radius: 5px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+.header-right #toggle-bandwidth:hover {
+    background: #1cc88a;
+    color: #fff;
+}
+.header-right .dropdown {
+    position: relative;
+}
+.header-right #loginDropdownBtn {
+    background: #1cc88a;
+    color: #fff;
+    padding: 0.4rem 1rem;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: background 0.2s;
+}
+.header-right #loginDropdownBtn:hover {
+    background: #169b6b;
+}
+.header-right #loginDropdownMenu {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 110%;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    border-radius: 7px;
+    min-width: 150px;
+    z-index: 1000;
+}
+.header-right #loginDropdownMenu a {
+    display: block;
+    padding: 0.7rem 1rem;
+    color: #222;
+    text-decoration: none;
+    border-bottom: 1px solid #eee;
+    transition: background 0.2s;
+}
+.header-right #loginDropdownMenu a:last-child {
+    border-bottom: none;
+}
+.header-right #loginDropdownMenu a:hover {
+    background: #f1f5f9;
+}
+
+.signin-container {
+    max-width: 400px;
+    margin: 60px auto;
+    padding: 2rem;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+.signin-container label {
+    display: block;
+    margin-bottom: 0.5rem;
+}
+.signin-container input {
+    width: 100%;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+.signin-container button {
+    width: 100%;
+    padding: 0.7rem;
+    background: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+}
+.signin-container button:hover {
+    background: #0056b3;
+}
+.signin-error {
+    color: #e74a3b;
+    text-align: center;
+    margin-bottom: 1rem;
+    display: none;
+}

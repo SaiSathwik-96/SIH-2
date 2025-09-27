@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Driver Profile</title>
+    <link rel="stylesheet" href="profile.css">
+    <link href="https://fonts.googleapis.com/css?family=Inter:400,500,700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(120deg, #f7fafc 0%, #e3f0ff 100%);
+            font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+        }
+        .profile-container {
+            max-width: 420px;
+            margin: 3.5rem auto 2rem auto;
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 6px 32px rgba(44,62,80,0.13), 0 1.5px 6px rgba(44,62,80,0.07);
+            padding: 2.5rem 2.5rem 2rem 2.5rem;
+            text-align: center;
+            position: relative;
+        }
+        .profile-avatar {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: #e0e0e0;
+            margin-bottom: 1.2rem;
+            display: inline-block;
+            box-shadow: 0 2px 8px rgba(76, 175, 80, 0.08);
+        }
+        .profile-label {
+            color: #4e73df;
+            font-size: 1.05rem;
+            font-weight: 500;
+            margin-bottom: 0.1rem;
+            letter-spacing: 0.5px;
+        }
+        .profile-value {
+            font-size: 1.22rem;
+            font-weight: 600;
+            margin-bottom: 1.1rem;
+            color: #222;
+        }
+        .main-header {
+            background: #2d3e50;
+            color: #fff;
+            padding: 1.2rem 0 1rem 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .main-header .container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            justify-content: space-between;
+        }
+        .main-header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0;
+            letter-spacing: 1px;
+        }
+        .main-header .logo {
+            width: 40px;
+            height: 40px;
+        }
+        .back-btn {
+            background: linear-gradient(90deg, #1cc88a 0%, #4e73df 100%);
+            color: #fff;
+            padding: 0.5rem 1.3rem;
+            border-radius: 7px;
+            font-weight: 600;
+            font-size: 1rem;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 1px 4px rgba(44,62,80,0.08);
+            transition: background 0.2s;
+        }
+        .back-btn:hover {
+            background: linear-gradient(90deg, #4e73df 0%, #1cc88a 100%);
+        }
+        @media (max-width: 600px) {
+            .profile-container {
+                padding: 1.2rem 0.5rem;
+            }
+            .main-header .container {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="main-header">
+        <div class="container">
+            <div style="display:flex;align-items:center;gap:1rem;">
+                <img src="https://img.icons8.com/ios-filled/50/ffffff/bus.png" alt="Bus Icon" class="logo">
+                <h1>Driver Profile</h1>
+            </div>
+            <button onclick="window.location.href='driver.html'" class="back-btn">Back</button>
+        </div>
+    </header>
+    <main>
+        <div class="profile-container">
+            <div class="profile-avatar">
+                <img src="https://img.icons8.com/ios-filled/80/4e73df/user-male-circle.png" alt="Avatar" style="width:80px;height:80px;border-radius:50%;">
+            </div>
+            <div>
+                <div class="profile-label">Name</div>
+                <div class="profile-value" id="driverName">Loading...</div>
+            </div>
+            <div>
+                <div class="profile-label">Age</div>
+                <div class="profile-value" id="driverAge">Loading...</div>
+            </div>
+            <div>
+                <div class="profile-label">Phone Number</div>
+                <div class="profile-value" id="driverPhone">Loading...</div>
+            </div>
+            <div>
+                <div class="profile-label">Driver ID</div>
+                <div class="profile-value" id="driverId">Loading...</div>
+            </div>
+        </div>
+    </main>
+    <script>
+    // Simulate fetching from backend (replace with real API call)
+    function fetchDriverProfile() {
+        // Example: fetch('/api/driver/profile').then(...)
+        return new Promise(resolve => {
+            setTimeout(() => {
+                resolve({
+                    name: "Ravi Kumar",
+                    age: 38,
+                    phone: "+91 9876543210",
+                    id: "DRV12345"
+                });
+            }, 700);
+        });
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        fetchDriverProfile().then(profile => {
+            document.getElementById('driverName').textContent = profile.name;
+            document.getElementById('driverAge').textContent = profile.age;
+            document.getElementById('driverPhone').textContent = profile.phone;
+            document.getElementById('driverId').textContent = profile.id;
+        });
+    });
+    </script>
+</body>
+</html>
