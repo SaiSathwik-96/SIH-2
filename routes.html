@@ -6,6 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bus Routes Result</title>
     <link rel="stylesheet" href="style.css">
+    <!-- Leaflet.js CDN for map display -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
     <header class="main-header">
@@ -36,6 +39,13 @@
                 </div>
             </div>
         </section>
+        <section class="bus-location-section">
+            <div class="container">
+                <h2>Live Bus Location</h2>
+                <div id="bus-map" style="width:100%;height:300px;border-radius:12px;margin-bottom:1rem;display:none;"></div>
+                <div id="bus-location-status"></div>
+            </div>
+        </section>
         <section class="status-section">
             <div class="container">
                 <h2>Real-time Status</h2>
@@ -55,6 +65,43 @@
         </div>
     </footer>
     <script>
+    // Live bus location fetch and map display
+    function showBusLocationOnMap(route) {
+        const mapDiv = document.getElementById('bus-map');
+        const statusDiv = document.getElementById('bus-location-status');
+        if (!route) {
+            mapDiv.style.display = 'none';
+            statusDiv.textContent = '';
+            return;
+        }
+        fetch(`http://localhost:3000/api/bus-location?route=${encodeURIComponent(route)}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.lat && data.lng) {
+                    mapDiv.style.display = 'block';
+                    statusDiv.textContent = `Bus for route ${route} is currently here.`;
+                    if (!window.busMap) {
+                        window.busMap = L.map('bus-map').setView([data.lat, data.lng], 14);
+                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                            maxZoom: 19,
+                            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                        }).addTo(window.busMap);
+                    } else {
+                        window.busMap.setView([data.lat, data.lng], 14);
+                        if (window.busMarker) window.busMap.removeLayer(window.busMarker);
+                    }
+                    window.busMarker = L.marker([data.lat, data.lng]).addTo(window.busMap);
+                    window.busMarker.bindPopup(`Bus Location`).openPopup();
+                } else {
+                    mapDiv.style.display = 'none';
+                    statusDiv.textContent = 'No live bus location available for this route.';
+                }
+            })
+            .catch(() => {
+                mapDiv.style.display = 'none';
+                statusDiv.textContent = 'Could not fetch live bus location.';
+            });
+    }
     // Get query params
     function getQueryParams() {
         const params = {};
@@ -116,10 +163,17 @@
                     <span>${r.frequency}</span>
                 </div>
                 <div class="route-price">Price: <strong>${r.price}</strong></div>
+                <button class="show-bus-location-btn" data-route="${r.route}" style="margin-top:0.5rem;background:#4e73df;color:#fff;border:none;padding:0.4rem 1rem;border-radius:5px;cursor:pointer;">Show Live Bus Location</button>
             </div>`;
         });
         html += '</div>';
         resultsDiv.innerHTML = html;
+        // Add event listeners to show bus location buttons
+        document.querySelectorAll('.show-bus-location-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                showBusLocationOnMap(this.getAttribute('data-route'));
+            });
+        });
     } else {
         resultsDiv.innerHTML = '<p style="color:red">Invalid search. Please go back and enter both locations.</p>';
     }

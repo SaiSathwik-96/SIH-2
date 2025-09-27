@@ -13,18 +13,20 @@
     <header class="main-header">
         <div class="container" style="justify-content:space-between;display:flex;align-items:center;">
             <div style="display:flex;align-items:center;gap:1rem;">
+                <span id="driverNameHeader" style="font-weight:600;color:#1cc88a;display:none;"></span>
                 <img src="https://img.icons8.com/ios-filled/50/ffffff/bus.png" alt="Bus Icon" class="logo">
                 <h1>HyderabadTransit</h1>
             </div>
             <div style="display:flex;align-items:center;gap:1rem;">
-                <select id="language-select" title="Language">
-                    <option value="en">English</option>
-                    <option value="hi">हिन्दी</option>
-                    <option value="pa">ਪੰਜਾਬੀ</option>
-                </select>
-                <button id="toggle-contrast" title="Toggle High Contrast" style="padding:0.3rem 0.7rem;">A</button>
+                
                 <button id="toggle-bandwidth" title="Low Bandwidth Mode" style="padding:0.3rem 0.7rem;">Low Data</button>
-                <a href="admin-signin.html" style="background:#1cc88a;color:#fff;padding:0.4rem 1rem;border-radius:5px;text-decoration:none;font-weight:500;">Admin</a>
+                                <div class="dropdown" style="position:relative;">
+                                    <button id="loginDropdownBtn" style="background:#1cc88a;color:#fff;padding:0.4rem 1rem;border-radius:5px;text-decoration:none;font-weight:500;cursor:pointer;">Login ▼</button>
+                                    <div id="loginDropdownMenu" style="display:none;position:absolute;right:0;top:110%;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.08);border-radius:7px;min-width:150px;z-index:1000;">
+                                        <a href="admin-signin.html" style="display:block;padding:0.7rem 1rem;color:#222;text-decoration:none;border-bottom:1px solid #eee;">Admin Login</a>
+                                        <a href="driver-signin.html" style="display:block;padding:0.7rem 1rem;color:#222;text-decoration:none;">Driver Sign In</a>
+                                    </div>
+                                </div>
             </div>
         </div>
     </header>
@@ -105,7 +107,27 @@
     </footer>
     <script src="script.js"></script>
     <script>
-    // Language selector (placeholder)
+                // Show driver's name and route in header if present
+                const driverName = localStorage.getItem('driverName');
+                const driverRoute = localStorage.getItem('driverRoute');
+                if (driverName) {
+                    const el = document.getElementById('driverNameHeader');
+                    el.textContent = driverRoute ? `Driver: ${driverName} (Route: ${driverRoute})` : `Driver: ${driverName}`;
+                    el.style.display = 'inline-block';
+                }
+
+                // Login dropdown
+        const loginBtn = document.getElementById('loginDropdownBtn');
+        const loginMenu = document.getElementById('loginDropdownMenu');
+        loginBtn.onclick = function(e) {
+            e.stopPropagation();
+            loginMenu.style.display = loginMenu.style.display === 'block' ? 'none' : 'block';
+        };
+        document.body.addEventListener('click', function() {
+            loginMenu.style.display = 'none';
+        });
+
+        // Language selector (placeholder)
     document.getElementById('language-select').addEventListener('change', function() {
         showNotification('Language changed to: ' + this.options[this.selectedIndex].text);
     });

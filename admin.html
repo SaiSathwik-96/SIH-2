@@ -44,7 +44,11 @@
                         <div style="color:#f39c12;">Feedback</div>
                     </div>
                 </div>
-                <!-- Live Fleet Map removed -->
+                <!-- Live Bus Locations List -->
+                <div class="bus-locations-section" style="margin:2rem 0;">
+                    <h3>Live Bus Locations</h3>
+                    <div id="bus-locations-list" style="display:flex;flex-wrap:wrap;gap:1rem;"></div>
+                </div>
                 <!-- Route Analytics (static bar chart) -->
                 <div style="margin:2rem 0;">
                     <h3>Route Analytics</h3>
@@ -79,8 +83,37 @@
     <!-- Leaflet.js removed -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-    // Dark mode button removed
-    // Fleet map removed
+    // Live bus locations list
+    function renderBusLocations(buses) {
+        const list = document.getElementById('bus-locations-list');
+        list.innerHTML = '';
+        if (Object.keys(buses).length === 0) {
+            list.innerHTML = '<div style="color:#888;">No live buses reporting location.</div>';
+            return;
+        }
+        Object.entries(buses).forEach(([busId, loc]) => {
+            const card = document.createElement('div');
+            card.style.background = '#f1f5f9';
+            card.style.borderRadius = '10px';
+            card.style.padding = '1rem 1.5rem';
+            card.style.minWidth = '180px';
+            card.style.boxShadow = '0 1px 4px rgba(0,0,0,0.04)';
+            card.innerHTML = `
+                <div style="font-size:1.1rem;font-weight:700;color:#4e73df;">🚌 Bus ${busId}</div>
+                <div style="font-size:0.98rem;">Lat: <b>${loc.lat.toFixed(5)}</b></div>
+                <div style="font-size:0.98rem;">Lng: <b>${loc.lng.toFixed(5)}</b></div>
+                <div style="font-size:0.95rem;color:#888;">Updated: ${new Date(loc.timestamp).toLocaleTimeString()}</div>
+            `;
+            list.appendChild(card);
+        });
+    }
+    function fetchBusLocations() {
+        fetch('http://localhost:3000/api/bus-locations')
+            .then(res => res.json())
+            .then(renderBusLocations);
+    }
+    setInterval(fetchBusLocations, 5000);
+    fetchBusLocations();
     // Route analytics bar chart (static)
     var ctx = document.getElementById('routeChart').getContext('2d');
     new Chart(ctx, {

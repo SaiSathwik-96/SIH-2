@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Bus Driver Live Location</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body { font-family: Arial, sans-serif; padding: 2rem; }
+    .driver-container { max-width: 400px; margin: 2rem auto; background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); padding: 2rem; }
+    .driver-container h2 { text-align: center; margin-bottom: 1.5rem; }
+    .driver-container input { width: 100%; padding: 0.6rem; margin-bottom: 1rem; border-radius: 6px; border: 1px solid #d1d5db; font-size: 1rem; }
+    .driver-container button { width: 100%; background: #4e73df; color: #fff; border: none; border-radius: 6px; padding: 0.6rem; font-size: 1rem; font-weight: 500; cursor: pointer; }
+    #status { margin-top: 1rem; color: #1cc88a; text-align: center; }
+  </style>
+</head>
+<body>
+  <header class="main-header">
+    <div class="container" style="display:flex;align-items:center;justify-content:space-between;">
+      <a href="index.html" style="display:flex;align-items:center;text-decoration:none;color:inherit;gap:1rem;">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/bus.png" alt="Bus Icon" class="logo">
+        <h1 style="margin:0;">HyderabadTransit</h1>
+      </a>
+      <div style="display:flex;align-items:center;gap:1rem;position:relative;">
+  <img id="profileIcon" src="https://img.icons8.com/ios-filled/40/4e73df/user-male-circle.png" alt="Profile" title="Driver Profile" style="width:40px;height:40px;border-radius:50%;background:#e3f0ff;box-shadow:0 1px 4px rgba(0,0,0,0.08);cursor:pointer;">
+        <div id="profileDropdown" style="display:none;position:absolute;right:0;top:110%;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.12);border-radius:7px;min-width:140px;z-index:1000;">
+          <div style="padding:0.8rem 1rem;border-bottom:1px solid #c73636;cursor:default;color:#4e73df;">Profile</div>
+          <button id="logoutBtn" style="width:100%;background:none;border:none;padding:0.8rem 1rem;text-align:left;color:#d9534f;cursor:pointer;">Logout</button>
+        </div>
+      </div>
+    </div>
+  </header>
+  <div class="driver-container">
+    <h2>Driver Location Sharing</h2>
+    <form id="driver-form">
+      <input type="text" id="bus-plate" placeholder="Bus Number Plate (e.g. TS09UA1234)" required>
+      <input type="text" id="route-number" placeholder="Route Number (e.g. 100V)" required>
+      <input type="text" id="route-from" placeholder="From (Start Point)" required>
+      <input type="text" id="route-to" placeholder="To (End Point)" required>
+      <button type="submit">Start Sharing Location</button>
+    </form>
+    <div id="status"></div>
+  </div>
+  <script>
+    // Profile dropdown logic
+    document.addEventListener('DOMContentLoaded', function() {
+      var icon = document.getElementById('profileIcon');
+      var dropdown = document.getElementById('profileDropdown');
+      icon.onclick = function(e) {
+        e.stopPropagation();
+        dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+      };
+      document.body.addEventListener('click', function() {
+        dropdown.style.display = 'none';
+      });
+      document.getElementById('logoutBtn').onclick = function() {
+        localStorage.removeItem('driverName');
+        localStorage.removeItem('driverRoute');
+        window.location.href = 'index.html';
+      };
+    });
+    let watchId = null;
+    document.getElementById('driver-form').onsubmit = function(e) {
+      e.preventDefault();
+      const busPlate = document.getElementById('bus-plate').value.trim();
+      const routeNumber = document.getElementById('route-number').value.trim();
+      const routeFrom = document.getElementById('route-from').value.trim();
+      const routeTo = document.getElementById('route-to').value.trim();
+      if (!busPlate || !routeNumber || !routeFrom || !routeTo) return;
+      // Store driver's name (bus plate), route, from, and to in localStorage
+      localStorage.setItem('driverName', busPlate);
+      localStorage.setItem('driverRoute', routeNumber);
+      localStorage.setItem('routeFrom', routeFrom);
+      localStorage.setItem('routeTo', routeTo);
+      if (navigator.geolocation) {
+        document.getElementById('status').textContent = 'Sharing location...';
+        watchId = navigator.geolocation.watchPosition(function(pos) {
+          fetch('http://localhost:3000/api/bus-location', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              busId: busPlate,
+              route: routeNumber,
+              from: routeFrom,
+              to: routeTo,
+              lat: pos.coords.latitude,
+              lng: pos.coords.longitude,
+              timestamp: Date.now()
+            })
+          });
+        }, function(err) {
+          document.getElementById('status').textContent = 'Location error: ' + err.message;
+        }, { enableHighAccuracy: true, maximumAge: 10000, timeout: 10000 });
+      } else {
+        document.getElementById('status').textContent = 'Geolocation not supported.';
+      }
+    };
+  </script>
+</body>
+</html>
