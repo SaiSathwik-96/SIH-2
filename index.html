@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HyderabadTransit</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Leaflet.js CDN -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body>
+    <header class="main-header">
+        <div class="container">
+            <img src="https://img.icons8.com/ios-filled/50/ffffff/bus.png" alt="Bus Icon" class="logo">
+            <h1>HyderabadTransit</h1>
+        </div>
+    </header>
+    <main>
+        <section class="hero-section">
+            <div class="container">
+                <h2>Real-time Bus Tracking</h2>
+                <div class="status-row">
+                    <span class="status-dot connected"></span>
+                    <span class="status-text">Connected</span>
+                </div>
+                <!-- Mapbox token input removed: map loads automatically -->
+            </div>
+        </section>
+        <section class="map-section">
+            <div class="container">
+                <div id="map" style="width:100%;height:320px;border-radius:12px;"></div>
+            </div>
+        </section>
+        <section class="planner-section">
+            <div class="container">
+                <div class="planner-header">
+                    <img src="https://img.icons8.com/ios-filled/24/4e73df/route.png" alt="Route Icon">
+                    <h2>Route Planner</h2>
+                </div>
+                <form class="route-search-bar" id="route-search-form" autocomplete="off">
+                    <input type="text" id="pickup-location" name="pickup" placeholder="Pickup Location" required />
+                    <span class="swap-icon" title="Swap locations">⇄</span>
+                    <input type="text" id="destination-location" name="destination" placeholder="Destination Location" required />
+                    <button type="submit" class="find-routes-btn">Find Route</button>
+                </form>
+            </div>
+        </section>
+        <section class="nearby-stops-section">
+            <div class="container">
+                <h2>Nearby Stops</h2>
+                <div class="stops-list">
+                    <div class="stop-card">
+                        <span class="stop-name">Ameerpet Metro</span>
+                        <span class="stop-distance">100m away</span>
+                        <span class="stop-routes">100V, 216</span>
+                    </div>
+                    <div class="stop-card">
+                        <span class="stop-name">Panjagutta</span>
+                        <span class="stop-distance">250m away</span>
+                        <span class="stop-routes">290U, 8A</span>
+                    </div>
+                    <div class="stop-card">
+                        <span class="stop-name">Banjara Hills</span>
+                        <span class="stop-distance">400m away</span>
+                        <span class="stop-routes">100V, 216, 290U</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    <footer>
+        <div class="container">
+            <p>Powered by Telangana State Road Transport Corporation (TSRTC)</p>
+            <p>Real-time data updated every 30 seconds • Covering Greater Hyderabad</p>
+        </div>
+    </footer>
+    <script src="script.js"></script>
+</body>
+</html>

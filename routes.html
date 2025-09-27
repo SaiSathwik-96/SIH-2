@@ -1,0 +1,198 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bus Routes Result</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="main-header">
+        <div class="container">
+            <a href="index.html" style="display:flex;align-items:center;text-decoration:none;color:inherit;gap:1rem;">
+                <img src="https://img.icons8.com/ios-filled/50/ffffff/bus.png" alt="Bus Icon" class="logo">
+                <h1 style="margin:0;">HyderabadTransit</h1>
+            </a>
+        </div>
+    </header>
+    <main>
+        <section class="planner-section">
+            <div class="container">
+                <div class="planner-header">
+                    <img src="https://img.icons8.com/ios-filled/24/4e73df/route.png" alt="Route Icon">
+                    <h2>Route Results</h2>
+                </div>
+                <div id="route-results">
+                    <!-- Results will be rendered here -->
+                </div>
+            </div>
+        </section>
+        <section class="alerts-section">
+            <div class="container">
+                <h2>Service Alerts</h2>
+                <div class="alerts-list" id="alerts-list">
+                    <!-- Alerts will be rendered here -->
+                </div>
+            </div>
+        </section>
+        <section class="status-section">
+            <div class="container">
+                <h2>Real-time Status</h2>
+                <div class="status-list" id="status-list">
+                    <!-- Status will be rendered here -->
+                </div>
+                <div class="system-status" id="system-status">
+                    <!-- System status will be rendered here -->
+                </div>
+            </div>
+        </section>
+    </main>
+    <footer>
+        <div class="container">
+            <p>Powered by Telangana State Road Transport Corporation (TSRTC)</p>
+            <p>Real-time data updated every 30 seconds • Covering Greater Hyderabad</p>
+        </div>
+    </footer>
+    <script>
+    // Get query params
+    function getQueryParams() {
+        const params = {};
+        window.location.search.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(str,key,value) {
+            params[key] = decodeURIComponent(value);
+        });
+        return params;
+    }
+    const params = getQueryParams();
+    const pickup = params.pickup || '';
+    const destination = params.destination || '';
+    const resultsDiv = document.getElementById('route-results');
+    if (pickup && destination) {
+        // Sample route data
+        const sampleRoutes = [
+            {
+                route: '100V',
+                from: 'Secunderabad',
+                to: 'HITEC City',
+                price: '₹35',
+                duration: '45 min',
+                frequency: 'Every 8 min'
+            },
+            {
+                route: '216',
+                from: 'Mehdipatnam',
+                to: 'Gachibowli',
+                price: '₹30',
+                duration: '35 min',
+                frequency: 'Every 12 min'
+            },
+            {
+                route: '290U',
+                from: 'JBS',
+                to: 'Kondapur',
+                price: '₹40',
+                duration: '50 min',
+                frequency: 'Every 10 min'
+            },
+            {
+                route: '8A',
+                from: 'Charminar',
+                to: 'Begumpet',
+                price: '₹28',
+                duration: '40 min',
+                frequency: 'Every 15 min'
+            }
+        ];
+        let html = `<h3>Routes from <span style='color:#4e73df'>${pickup}</span> to <span style='color:#1cc88a'>${destination}</span></h3>`;
+        html += '<div class="routes-list">';
+        sampleRoutes.forEach(r => {
+            html += `<div class="route-card">
+                <div class="route-info">
+                    <span class="route-name">${r.route}</span>
+                    <span class="route-desc">${r.from} - ${r.to}</span>
+                </div>
+                <div class="route-meta">
+                    <span>${r.duration}</span>
+                    <span>${r.frequency}</span>
+                </div>
+                <div class="route-price">Price: <strong>${r.price}</strong></div>
+            </div>`;
+        });
+        html += '</div>';
+        resultsDiv.innerHTML = html;
+    } else {
+        resultsDiv.innerHTML = '<p style="color:red">Invalid search. Please go back and enter both locations.</p>';
+    }
+
+    // Service Alerts (static sample)
+    const alerts = [
+        {
+            icon: '⚠️',
+            text: 'Route 100V experiencing 8-minute delays due to traffic near HITEC City',
+            time: '3 min ago'
+        },
+        {
+            icon: '🚌',
+            text: 'Additional buses deployed on Route 216 for Diwali festival rush',
+            time: '20 min ago'
+        },
+        {
+            icon: '🚏',
+            text: 'Bus stop at Ameerpet Metro temporarily shifted 50m ahead',
+            time: '2 hours ago'
+        }
+    ];
+    const alertsList = document.getElementById('alerts-list');
+    if (alertsList) {
+        alerts.forEach(alert => {
+            const div = document.createElement('div');
+            div.className = 'alert-card';
+            div.innerHTML = `<span class="alert-icon">${alert.icon}</span><span class="alert-text">${alert.text}</span><span class="alert-time">${alert.time}</span>`;
+            alertsList.appendChild(div);
+        });
+    }
+    // Real-time Status (static sample)
+    const statuses = [
+        {
+            route: '100V',
+            status: '8 min delay',
+            updated: 'Updated 45s ago',
+            delay: true
+        },
+        {
+            route: '216',
+            status: 'On Time',
+            updated: 'Updated 1m ago',
+            delay: false
+        },
+        {
+            route: '290U',
+            status: 'On Time',
+            updated: 'Updated 30s ago',
+            delay: false
+        },
+        {
+            route: '8A',
+            status: '3 min delay',
+            updated: 'Updated 2m ago',
+            delay: true
+        }
+    ];
+    const statusList = document.getElementById('status-list');
+    if (statusList) {
+        statuses.forEach(s => {
+            const div = document.createElement('div');
+            div.className = 'status-card';
+            div.innerHTML = `<span class="route-name">${s.route}</span>` +
+                `<span class="${s.delay ? 'status-delay' : 'status-ontime'}">${s.status}</span>` +
+                `<span class="status-updated">${s.updated}</span>`;
+            statusList.appendChild(div);
+        });
+    }
+    const systemStatus = document.getElementById('system-status');
+    if (systemStatus) {
+        systemStatus.innerHTML = '<span>All Systems Operational</span><span>Last updated: Just now • Next update in 30s</span>';
+    }
+    </script>
+</body>
+</html>
