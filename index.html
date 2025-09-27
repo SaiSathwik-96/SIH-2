@@ -11,9 +11,21 @@
 </head>
 <body>
     <header class="main-header">
-        <div class="container">
-            <img src="https://img.icons8.com/ios-filled/50/ffffff/bus.png" alt="Bus Icon" class="logo">
-            <h1>HyderabadTransit</h1>
+        <div class="container" style="justify-content:space-between;display:flex;align-items:center;">
+            <div style="display:flex;align-items:center;gap:1rem;">
+                <img src="https://img.icons8.com/ios-filled/50/ffffff/bus.png" alt="Bus Icon" class="logo">
+                <h1>HyderabadTransit</h1>
+            </div>
+            <div style="display:flex;align-items:center;gap:1rem;">
+                <select id="language-select" title="Language">
+                    <option value="en">English</option>
+                    <option value="hi">हिन्दी</option>
+                    <option value="pa">ਪੰਜਾਬੀ</option>
+                </select>
+                <button id="toggle-contrast" title="Toggle High Contrast" style="padding:0.3rem 0.7rem;">A</button>
+                <button id="toggle-bandwidth" title="Low Bandwidth Mode" style="padding:0.3rem 0.7rem;">Low Data</button>
+                <a href="admin-signin.html" style="background:#1cc88a;color:#fff;padding:0.4rem 1rem;border-radius:5px;text-decoration:none;font-weight:500;">Admin</a>
+            </div>
         </div>
     </header>
     <main>
@@ -68,13 +80,60 @@
                 </div>
             </div>
         </section>
+        <section class="notification-section" style="display:none;" id="notification-section">
+            <div class="container">
+                <div id="notification-message" style="background:#fff3cd;color:#856404;padding:0.7rem 1rem;border-radius:8px;margin:1rem 0;"></div>
+            </div>
+        </section>
+        <section class="feedback-section">
+            <div class="container">
+                <h2>Feedback & Reporting</h2>
+                <form id="feedback-form" style="display:flex;flex-direction:column;gap:0.7rem;max-width:400px;">
+                    <textarea id="feedback-text" rows="3" placeholder="Describe your issue or suggestion..." required></textarea>
+                    <input type="text" id="feedback-contact" placeholder="Your email or phone (optional)">
+                    <button type="submit" style="background:#4e73df;color:#fff;border:none;padding:0.5rem 1.2rem;border-radius:5px;">Submit Feedback</button>
+                </form>
+                <div id="feedback-success" style="color:#1cc88a;margin-top:0.5rem;display:none;">Thank you for your feedback!</div>
+            </div>
+        </section>
     </main>
     <footer>
         <div class="container">
-            <p>Powered by Telangana State Road Transport Corporation (TSRTC)</p>
+            <p>Powered by Road Transport Corporation (TSRTC)</p>
             <p>Real-time data updated every 30 seconds • Covering Greater Hyderabad</p>
         </div>
     </footer>
     <script src="script.js"></script>
+    <script>
+    // Language selector (placeholder)
+    document.getElementById('language-select').addEventListener('change', function() {
+        showNotification('Language changed to: ' + this.options[this.selectedIndex].text);
+    });
+    // High contrast toggle
+    document.getElementById('toggle-contrast').addEventListener('click', function() {
+        document.body.classList.toggle('high-contrast');
+        showNotification(document.body.classList.contains('high-contrast') ? 'High contrast mode enabled' : 'High contrast mode disabled');
+    });
+    // Low bandwidth toggle (text-only mode placeholder)
+    document.getElementById('toggle-bandwidth').addEventListener('click', function() {
+        document.body.classList.toggle('low-bandwidth');
+        showNotification(document.body.classList.contains('low-bandwidth') ? 'Low bandwidth mode enabled' : 'Low bandwidth mode disabled');
+    });
+    // Notification UI
+    function showNotification(msg) {
+        var section = document.getElementById('notification-section');
+        var msgDiv = document.getElementById('notification-message');
+        msgDiv.textContent = msg;
+        section.style.display = 'block';
+        setTimeout(function(){ section.style.display = 'none'; }, 2500);
+    }
+    // Feedback form
+    document.getElementById('feedback-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        document.getElementById('feedback-success').style.display = 'block';
+        setTimeout(function(){ document.getElementById('feedback-success').style.display = 'none'; }, 3000);
+        this.reset();
+    });
+    </script>
 </body>
 </html>

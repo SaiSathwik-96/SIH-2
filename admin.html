@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - HyderabadTransit</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="main-header">
+        <div class="container">
+            <a href="index.html" style="display:flex;align-items:center;text-decoration:none;color:inherit;gap:1rem;">
+                <img src="https://img.icons8.com/ios-filled/50/ffffff/bus.png" alt="Bus Icon" class="logo">
+                <h1 style="margin:0;">HyderabadTransit Admin</h1>
+            </a>
+        </div>
+    </header>
+    <main>
+        <section class="admin-section">
+            <div class="container">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <h2>Admin Dashboard</h2>
+                </div>
+                <!-- Quick Stats -->
+                <div style="display:flex;gap:1.5rem;margin:1.5rem 0;flex-wrap:wrap;">
+                    <div style="background:#f1f5f9;padding:1rem 2rem;border-radius:10px;min-width:150px;text-align:center;">
+                        <div style="font-size:2rem;">🚌</div>
+                        <div style="font-size:1.2rem;font-weight:600;">24</div>
+                        <div style="color:#4e73df;">Buses Running</div>
+                    </div>
+                    <div style="background:#f1f5f9;padding:1rem 2rem;border-radius:10px;min-width:150px;text-align:center;">
+                        <div style="font-size:2rem;">🗺️</div>
+                        <div style="font-size:1.2rem;font-weight:600;">12</div>
+                        <div style="color:#1cc88a;">Active Routes</div>
+                    </div>
+                    <div style="background:#f1f5f9;padding:1rem 2rem;border-radius:10px;min-width:150px;text-align:center;">
+                        <div style="font-size:2rem;">⏰</div>
+                        <div style="font-size:1.2rem;font-weight:600;">3</div>
+                        <div style="color:#e74a3b;">Delays</div>
+                    </div>
+                    <div style="background:#f1f5f9;padding:1rem 2rem;border-radius:10px;min-width:150px;text-align:center;">
+                        <div style="font-size:2rem;">💬</div>
+                        <div style="font-size:1.2rem;font-weight:600;">7</div>
+                        <div style="color:#f39c12;">Feedback</div>
+                    </div>
+                </div>
+                <!-- Live Fleet Map removed -->
+                <!-- Route Analytics (static bar chart) -->
+                <div style="margin:2rem 0;">
+                    <h3>Route Analytics</h3>
+                    <canvas id="routeChart" width="600" height="200" style="background:#fff;border-radius:10px;"></canvas>
+                </div>
+                <!-- Service Alerts Management -->
+                <div style="margin:2rem 0;">
+                    <h3>Service Alerts Management</h3>
+                    <form id="admin-alert-form" style="display:flex;gap:1rem;flex-wrap:wrap;align-items:center;">
+                        <input type="text" id="admin-alert-text" placeholder="New alert message..." style="flex:1;padding:0.5rem;border-radius:5px;border:1px solid #ccc;" />
+                        <button type="submit" style="background:#e74a3b;color:#fff;border:none;padding:0.5rem 1.2rem;border-radius:5px;">Add Alert</button>
+                    </form>
+                    <ul id="admin-alert-list" style="margin-top:1rem;list-style:none;padding:0;"></ul>
+                </div>
+                <!-- Recent Feedback (static) -->
+                <div style="margin:2rem 0;">
+                    <h3>Recent Feedback</h3>
+                    <ul style="background:#f1f5f9;padding:1rem;border-radius:10px;list-style:none;max-width:600px;">
+                        <li>"Bus 216 was late today." <span style="color:#888;">- 10 min ago</span></li>
+                        <li>"Please add more buses on 100V." <span style="color:#888;">- 30 min ago</span></li>
+                        <li>"Cleanliness is good!" <span style="color:#888;">- 1 hour ago</span></li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+    <footer>
+        <div class="container">
+            <p>Powered by Telangana State Road Transport Corporation (TSRTC)</p>
+        </div>
+    </footer>
+    <!-- Leaflet.js removed -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+    // Dark mode button removed
+    // Fleet map removed
+    // Route analytics bar chart (static)
+    var ctx = document.getElementById('routeChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['100V', '216', '290U', '8A'],
+            datasets: [{
+                label: 'Avg. Daily Ridership',
+                data: [1200, 950, 800, 600],
+                backgroundColor: ['#4e73df','#1cc88a','#f39c12','#e74a3b']
+            }]
+        },
+        options: {
+            plugins: {legend: {display: false}},
+            scales: {y: {beginAtZero:true}}
+        }
+    });
+    // Service alert management (UI only)
+    document.getElementById('admin-alert-form').onsubmit = function(e) {
+        e.preventDefault();
+        var txt = document.getElementById('admin-alert-text').value.trim();
+        if(txt) {
+            var li = document.createElement('li');
+            li.textContent = txt;
+            document.getElementById('admin-alert-list').appendChild(li);
+            document.getElementById('admin-alert-text').value = '';
+        }
+    };
+    </script>
+</body>
+</html>

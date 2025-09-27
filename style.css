@@ -1,3 +1,24 @@
+body.high-contrast {
+    background: #000 !important;
+    color: #fff !important;
+}
+body.high-contrast header,
+body.high-contrast .main-header {
+    background: #000 !important;
+    color: #fff !important;
+}
+body.high-contrast .container, body.high-contrast section, body.high-contrast .route-card, body.high-contrast .stop-card {
+    background: #111 !important;
+    color: #fff !important;
+    border-color: #fff !important;
+}
+body.low-bandwidth .map-section, body.low-bandwidth #map {
+    display: none !important;
+}
+body.low-bandwidth .stops-list, body.low-bandwidth .route-search-bar, body.low-bandwidth .planner-section, body.low-bandwidth .nearby-stops-section {
+    background: #fff !important;
+    color: #222 !important;
+}
 .route-search-bar {
     display: flex;
     align-items: center;

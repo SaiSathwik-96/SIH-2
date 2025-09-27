@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Sign In - HyderabadTransit</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .signin-container {
+            max-width: 350px;
+            margin: 4rem auto;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            padding: 2rem 2rem 1.5rem 2rem;
+        }
+        .signin-container h2 {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        .signin-container input {
+            width: 100%;
+            padding: 0.6rem;
+            margin-bottom: 1rem;
+            border-radius: 6px;
+            border: 1px solid #d1d5db;
+            font-size: 1rem;
+        }
+        .signin-container button {
+            width: 100%;
+            background: #4e73df;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 0.6rem;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .signin-error {
+            color: #e74a3b;
+            text-align: center;
+            margin-bottom: 1rem;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <header class="main-header">
+        <div class="container">
+            <a href="index.html" style="display:flex;align-items:center;text-decoration:none;color:inherit;gap:1rem;">
+                <img src="https://img.icons8.com/ios-filled/50/ffffff/bus.png" alt="Bus Icon" class="logo">
+                <h1 style="margin:0;">HyderabadTransit</h1>
+            </a>
+        </div>
+    </header>
+    <div class="signin-container">
+        <h2>Admin Sign In</h2>
+        <div class="signin-error" id="signin-error">Invalid credentials. Please try again.</div>
+        <form id="admin-signin-form" autocomplete="off">
+            <input type="text" id="admin-username" placeholder="Username" />
+            <input type="password" id="admin-password" placeholder="Password" />
+            <button type="submit">Sign In</button>
+        </form>
+    </div>
+    <script>
+    document.getElementById('admin-signin-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        window.location.href = 'admin.html';
+    });
+    </script>
+</body>
+</html>

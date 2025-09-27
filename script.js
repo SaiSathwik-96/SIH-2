@@ -34,4 +34,18 @@ window.addEventListener('DOMContentLoaded', function() {
         maxZoom: 19,
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
+
+    // Try to get user's real-time location
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            var lat = position.coords.latitude;
+            var lng = position.coords.longitude;
+            var marker = L.marker([lat, lng]).addTo(map);
+            marker.bindPopup("You are here").openPopup();
+            map.setView([lat, lng], 14);
+        }, function(error) {
+            // If denied or error, do nothing (map stays on Hyderabad)
+            console.warn('Geolocation error:', error.message);
+        });
+    }
 });
