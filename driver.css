@@ -3,8 +3,8 @@
 body {
     font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
     margin: 0;
-    background: #f7f9fa;
-    color: #222;
+    background: #181c24;
+    color: #f1f1f1;
 }
 .main-header {
     background: #33373f;
@@ -104,9 +104,10 @@ body.driver-page {
 .driver-container {
     max-width: 400px;
     margin: 2rem auto;
-    background: #fff;
+    background: #232733;
     border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    box-shadow: 0 2px 8px rgba(78,115,223,0.08);
+    border: 2px solid #4e73df;
     padding: 2rem;
 }
 .driver-container h2 {
@@ -118,19 +119,26 @@ body.driver-page {
     padding: 0.6rem;
     margin-bottom: 1rem;
     border-radius: 6px;
-    border: 1px solid #d1d5db;
+    border: 1px solid #444;
+    background: #232733;
+    color: #f1f1f1;
     font-size: 1rem;
 }
 .driver-container button {
     width: 100%;
-    background: #4e73df;
-    color: #fff;
+    background: #1cc88a;
+    color: #232733;
     border: none;
     border-radius: 6px;
     padding: 0.6rem;
     font-size: 1rem;
     font-weight: 500;
     cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+.driver-container button:hover {
+    background: #169b6b;
+    color: #fff;
 }
 #status {
     margin-top: 1rem;

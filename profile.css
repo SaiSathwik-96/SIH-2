@@ -3,16 +3,17 @@
 body {
     font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
     margin: 0;
-    background: #f7f9fa;
-    color: #222;
+    background: #181c24;
+    color: #f1f1f1;
 }
 
 .profile-container {
     max-width: 400px;
     margin: 2rem auto;
-    background: #fff;
+    background: #232733;
     border-radius: 12px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    box-shadow: 0 2px 12px rgba(78,115,223,0.08);
+    border: 2px solid #4e73df;
     padding: 2rem 2.5rem;
     text-align: center;
 }
@@ -20,7 +21,8 @@ body {
     width: 80px;
     height: 80px;
     border-radius: 50%;
-    background: #e0e0e0;
+    background: #232733;
+    border: 2px solid #4e73df;
     margin-bottom: 1rem;
     display: inline-block;
 }
@@ -32,4 +34,5 @@ body {
     font-size: 1.15rem;
     font-weight: 500;
     margin-bottom: 1rem;
+    color: #f1f1f1;
 }

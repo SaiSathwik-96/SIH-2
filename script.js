@@ -55,6 +55,9 @@ window.addEventListener('DOMContentLoaded', function() {
         attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
+    // Routing control (only one at a time)
+    var routingControl = null;
+
     // Show loading spinner for nearby stops immediately
     const stopsContainer = document.querySelector('.stops-list');
     if (stopsContainer) {
@@ -94,6 +97,35 @@ window.addEventListener('DOMContentLoaded', function() {
                 <span class="stop-distance">${distance} m away</span>
                 <span class="stop-routes">N/A</span>
             `;
+            // Add click event to show route on map
+            stopCard.style.cursor = 'pointer';
+            stopCard.title = 'Show route to this stop';
+            stopCard.addEventListener('click', function() {
+                // Remove previous route if any
+                if (window.routingControl) {
+                    try { map.removeControl(window.routingControl); } catch(e) {}
+                    window.routingControl = null;
+                }
+                // Add new route
+                window.routingControl = L.Routing.control({
+                    waypoints: [
+                        L.latLng(userLat, userLon),
+                        L.latLng(stop.lat, stop.lon)
+                    ],
+                    routeWhileDragging: false,
+                    draggableWaypoints: false,
+                    addWaypoints: false,
+                    show: false,
+                    lineOptions: { styles: [{color: '#4e73df', weight: 5}] },
+                    createMarker: function() { return null; }
+                }).addTo(map);
+                // Fit map bounds to route
+                var bounds = L.latLngBounds([
+                    [userLat, userLon],
+                    [stop.lat, stop.lon]
+                ]);
+                map.fitBounds(bounds.pad(0.2)); // Add padding for better view
+            });
             stopsContainer.appendChild(stopCard);
         });
     }
@@ -124,7 +156,11 @@ window.addEventListener('DOMContentLoaded', function() {
         var lon = e.longitude;
         // Only update map view and add marker when location is found
         map.setView([lat, lon], 14);
-        L.marker([lat, lon]).addTo(map).bindPopup("You are here").openPopup();
+        // Remove previous user marker if any
+        if (window.userMarker && map.hasLayer(window.userMarker)) {
+            map.removeLayer(window.userMarker);
+        }
+        window.userMarker = L.marker([lat, lon]).addTo(map).bindPopup("You are here").openPopup();
         // Show loading while fetching
         const stopsContainer = document.querySelector('.stops-list');
         if (stopsContainer) {
