@@ -5,6 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HyderabadTransit</title>
     <link rel="stylesheet" href="index.css">
+    <style>
+    /* Make autocomplete suggestion text visible */
+    .autocomplete-suggestions div {
+        color: #222 !important;
+        background: #fff !important;
+    }
+    </style>
     <!-- Leaflet Routing Machine CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
     <!-- Leaflet.js CDN -->
@@ -187,6 +194,17 @@
         document.getElementById('feedback-success').style.display = 'block';
         setTimeout(function(){ document.getElementById('feedback-success').style.display = 'none'; }, 3000);
         this.reset();
+    });
+    document.getElementById('route-search-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const pickup = document.getElementById('pickup-location').value.trim();
+        const destination = document.getElementById('destination-location').value.trim();
+        if (pickup && destination) {
+            // Store pickup and destination in localStorage for routes.html
+            localStorage.setItem('userPickup', pickup);
+            localStorage.setItem('userDestination', destination);
+            window.location.href = `routes.html?pickup=${encodeURIComponent(pickup)}&destination=${encodeURIComponent(destination)}`;
+        }
     });
     </script>
 </body>

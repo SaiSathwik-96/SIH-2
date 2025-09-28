@@ -125,27 +125,30 @@
         </div>
     </main>
     <script>
-    // Simulate fetching from backend (replace with real API call)
-    function fetchDriverProfile() {
-        // Example: fetch('/api/driver/profile').then(...)
-        return new Promise(resolve => {
-            setTimeout(() => {
-                resolve({
-                    name: "Ravi Kumar",
-                    age: 38,
-                    phone: "+91 9876543210",
-                    id: "DRV12345"
-                });
-            }, 700);
-        });
-    }
     document.addEventListener('DOMContentLoaded', function() {
-        fetchDriverProfile().then(profile => {
-            document.getElementById('driverName').textContent = profile.name;
-            document.getElementById('driverAge').textContent = profile.age;
-            document.getElementById('driverPhone').textContent = profile.phone;
-            document.getElementById('driverId').textContent = profile.id;
-        });
+        // Get phone number from localStorage/sessionStorage (must be set at login)
+        var driverPhone = localStorage.getItem('driverPhone') || sessionStorage.getItem('driverPhone');
+        if (!driverPhone) {
+            document.getElementById('driverName').textContent = 'Not logged in';
+            document.getElementById('driverAge').textContent = '-';
+            document.getElementById('driverPhone').textContent = '-';
+            document.getElementById('driverId').textContent = '-';
+            return;
+        }
+        fetch(`https://backendrootmate.onrender.com/driverdetails/${driverPhone}`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('driverName').textContent = data.NAME || '-';
+                document.getElementById('driverAge').textContent = '-';
+                document.getElementById('driverPhone').textContent = data.PHONENUMBER || '-';
+                document.getElementById('driverId').textContent = data.PASSWORD || '-';
+            })
+            .catch(error => {
+                document.getElementById('driverName').textContent = 'Error';
+                document.getElementById('driverAge').textContent = '-';
+                document.getElementById('driverPhone').textContent = '-';
+                document.getElementById('driverId').textContent = '-';
+            });
     });
     </script>
 </body>

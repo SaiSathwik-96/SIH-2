@@ -90,11 +90,17 @@ window.addEventListener('DOMContentLoaded', function() {
         stops.forEach(stop => {
             const distance = getDistanceFromLatLonInM(userLat, userLon, stop.lat, stop.lon);
             const stopName = stop.tags.name || 'Bus Stop';
+            // Estimate walking time (5 km/h = 83.33 m/min)
+            const walkingSpeedMps = 1.39; // 5 km/h in m/s
+            const estSeconds = distance / walkingSpeedMps;
+            const estMinutes = Math.round(estSeconds / 60);
+            const timeStr = estMinutes < 1 ? '<1 min' : estMinutes + ' min';
             const stopCard = document.createElement('div');
             stopCard.className = 'stop-card';
             stopCard.innerHTML = `
                 <span class="stop-name">${stopName}</span>
                 <span class="stop-distance">${distance} m away</span>
+                <span class="stop-time">${timeStr} walk</span>
                 <span class="stop-routes">N/A</span>
             `;
             // Add click event to show route on map

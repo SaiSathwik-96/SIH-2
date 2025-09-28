@@ -29,9 +29,12 @@
       <input type="text" id="route-number" placeholder="Route Number (e.g. 100V)" required>
       <input type="text" id="route-from" placeholder="From (Start Point)" required>
       <input type="text" id="route-to" placeholder="To (End Point)" required>
+      <textarea id="route-stops" placeholder="Enter all stops in order, separated by commas (e.g. Ameerpet, SR Nagar, ESI, Erragadda)" style="margin-top:0.5rem;width:100%;min-height:60px;"></textarea>
       <button type="submit">Start Sharing Location</button>
     </form>
     <div id="status"></div>
+    <div id="fetched-stops-list" style="margin:1rem 0;color:#4e73df;"></div>
+    <button id="end-journey-btn" style="margin-top:1rem;background:#d9534f;color:#fff;border:none;padding:0.6rem 1.5rem;border-radius:6px;cursor:pointer;">End Journey</button>
   </div>
   <script>
     // Profile dropdown logic (profile link now in dropdown)
@@ -51,41 +54,125 @@
         window.location.href = 'index.html';
       };
     });
-    let watchId = null;
-    document.getElementById('driver-form').onsubmit = function(e) {
+    // Helper: get driver phone/id (use phone for now)
+    function getDriverKey() {
+      return localStorage.getItem('driverPhone') || sessionStorage.getItem('driverPhone');
+    }
+
+    // Save bus details under driver-specific key
+    function saveDriverBusDetails(details) {
+      const key = getDriverKey();
+      if (key) localStorage.setItem('busDetails_' + key, JSON.stringify(details));
+    }
+    // Get bus details for this driver
+    function getDriverBusDetails() {
+      const key = getDriverKey();
+      if (key) {
+        const data = localStorage.getItem('busDetails_' + key);
+        return data ? JSON.parse(data) : null;
+      }
+      return null;
+    }
+    // Remove bus details for this driver
+    function clearDriverBusDetails() {
+      const key = getDriverKey();
+      if (key) localStorage.removeItem('busDetails_' + key);
+    }
+
+    // On page load, restore bus details if present
+    window.addEventListener('DOMContentLoaded', function() {
+      const details = getDriverBusDetails();
+      if (details) {
+        document.getElementById('bus-plate').value = details.busPlate || '';
+        document.getElementById('route-number').value = details.routeNumber || '';
+        document.getElementById('route-from').value = details.routeFrom || '';
+        document.getElementById('route-to').value = details.routeTo || '';
+        document.getElementById('status').textContent = 'Bus details loaded. Journey in progress.';
+        if (details.routeStops) {
+          document.getElementById('route-stops').value = details.routeStops.join(', ');
+        }
+      }
+    });
+    // Helper: fetch stops between two points using Overpass API
+    async function fetchStopsBetween(start, end) {
+      // Use Nominatim to get coordinates for start and end
+      const getCoords = async (place) => {
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(place)}`);
+        const data = await res.json();
+        if (data && data[0]) return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
+        return null;
+      };
+      const startCoord = await getCoords(start);
+      const endCoord = await getCoords(end);
+      if (!startCoord || !endCoord) return [];
+      // Build Overpass query for bus stops in bounding box
+      const minLat = Math.min(startCoord.lat, endCoord.lat);
+      const maxLat = Math.max(startCoord.lat, endCoord.lat);
+      const minLon = Math.min(startCoord.lon, endCoord.lon);
+      const maxLon = Math.max(startCoord.lon, endCoord.lon);
+      const query = `
+        [out:json][timeout:25];
+        node["highway"="bus_stop"](${minLat},${minLon},${maxLat},${maxLon});
+        out;
+      `;
+      const url = "https://overpass-api.de/api/interpreter?data=" + encodeURIComponent(query);
+      const res = await fetch(url);
+      const data = await res.json();
+      // Sort stops by distance from start to end
+      if (!data.elements) return [];
+      // Always include start and end
+      let stops = data.elements.map(stop => stop.tags && stop.tags.name).filter(Boolean);
+      if (!stops.includes(start)) stops.unshift(start);
+      if (!stops.includes(end)) stops.push(end);
+      // Remove duplicates
+      stops = [...new Set(stops)];
+      return stops;
+    }
+
+    // Show fetched stops when start/end are entered
+    async function updateFetchedStopsList() {
+      const routeFrom = document.getElementById('route-from').value.trim();
+      const routeTo = document.getElementById('route-to').value.trim();
+      const stopsDiv = document.getElementById('fetched-stops-list');
+      stopsDiv.textContent = '';
+      if (routeFrom && routeTo) {
+        stopsDiv.textContent = 'Fetching stops...';
+        const stops = await fetchStopsBetween(routeFrom, routeTo);
+        if (stops.length > 0) {
+          stopsDiv.innerHTML = '<strong>Stops detected:</strong> ' + stops.join(' → ');
+          window._pendingRouteStops = stops;
+        } else {
+          stopsDiv.innerHTML = '<span style="color:#e74a3b">No stops found between these points.</span>';
+          window._pendingRouteStops = [];
+        }
+      } else {
+        window._pendingRouteStops = [];
+      }
+    }
+    document.getElementById('route-from').addEventListener('blur', updateFetchedStopsList);
+    document.getElementById('route-to').addEventListener('blur', updateFetchedStopsList);
+
+    document.getElementById('driver-form').onsubmit = async function(e) {
       e.preventDefault();
       const busPlate = document.getElementById('bus-plate').value.trim();
       const routeNumber = document.getElementById('route-number').value.trim();
       const routeFrom = document.getElementById('route-from').value.trim();
       const routeTo = document.getElementById('route-to').value.trim();
+      // Only save stops when sharing starts
+      let routeStops = Array.isArray(window._pendingRouteStops) ? window._pendingRouteStops : [];
       if (!busPlate || !routeNumber || !routeFrom || !routeTo) return;
-      // Store driver's name (bus plate), route, from, and to in localStorage
-      localStorage.setItem('driverName', busPlate);
-      localStorage.setItem('driverRoute', routeNumber);
-      localStorage.setItem('routeFrom', routeFrom);
-      localStorage.setItem('routeTo', routeTo);
-      if (navigator.geolocation) {
-        document.getElementById('status').textContent = 'Sharing location...';
-        watchId = navigator.geolocation.watchPosition(function(pos) {
-          fetch('http://localhost:3000/api/bus-location', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              busId: busPlate,
-              route: routeNumber,
-              from: routeFrom,
-              to: routeTo,
-              lat: pos.coords.latitude,
-              lng: pos.coords.longitude,
-              timestamp: Date.now()
-            })
-          });
-        }, function(err) {
-          document.getElementById('status').textContent = 'Location error: ' + err.message;
-        }, { enableHighAccuracy: true, maximumAge: 10000, timeout: 10000 });
-      } else {
-        document.getElementById('status').textContent = 'Geolocation not supported.';
-      }
+      saveDriverBusDetails({ busPlate, routeNumber, routeFrom, routeTo, routeStops });
+      document.getElementById('status').textContent = 'Bus details saved!';
+    };
+
+    // End Journey button logic
+    document.getElementById('end-journey-btn').onclick = function() {
+      clearDriverBusDetails();
+      document.getElementById('bus-plate').value = '';
+      document.getElementById('route-number').value = '';
+      document.getElementById('route-from').value = '';
+      document.getElementById('route-to').value = '';
+      document.getElementById('status').textContent = 'Journey ended. Bus details cleared.';
     };
   </script>
 </body>

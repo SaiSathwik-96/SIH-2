@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -111,69 +110,78 @@
         return params;
     }
     const params = getQueryParams();
-    const pickup = params.pickup || '';
-    const destination = params.destination || '';
+    let pickup = params.pickup || localStorage.getItem('userPickup') || '';
+    let destination = params.destination || localStorage.getItem('userDestination') || '';
     const resultsDiv = document.getElementById('route-results');
+
+    // Get bus details from localStorage (set by driver)
+    function getDriverKey() {
+        return localStorage.getItem('driverPhone') || sessionStorage.getItem('driverPhone');
+    }
+    function getDriverBusDetails() {
+        const key = getDriverKey();
+        if (key) {
+            const data = localStorage.getItem('busDetails_' + key);
+            return data ? JSON.parse(data) : null;
+        }
+        return null;
+    }
+    const driverBus = getDriverBusDetails() || {};
+
     if (pickup && destination) {
-        // Sample route data
-        const sampleRoutes = [
-            {
-                route: '100V',
-                from: 'Secunderabad',
-                to: 'HITEC City',
-                price: '₹35',
-                duration: '45 min',
-                frequency: 'Every 8 min'
-            },
-            {
-                route: '216',
-                from: 'Mehdipatnam',
-                to: 'Gachibowli',
-                price: '₹30',
-                duration: '35 min',
-                frequency: 'Every 12 min'
-            },
-            {
-                route: '290U',
-                from: 'JBS',
-                to: 'Kondapur',
-                price: '₹40',
-                duration: '50 min',
-                frequency: 'Every 10 min'
-            },
-            {
-                route: '8A',
-                from: 'Charminar',
-                to: 'Begumpet',
-                price: '₹28',
-                duration: '40 min',
-                frequency: 'Every 15 min'
-            }
-        ];
         let html = `<h3>Routes from <span style='color:#4e73df'>${pickup}</span> to <span style='color:#1cc88a'>${destination}</span></h3>`;
         html += '<div class="routes-list">';
-        sampleRoutes.forEach(r => {
+        // Show the driver's bus if it matches the search by endpoints or by stops
+        let showBus = false;
+        let matchedPickup = '', matchedDest = '';
+        if (
+            driverBus.routeNumber && driverBus.routeFrom && driverBus.routeTo
+        ) {
+            // Direct endpoint match
+            if (
+                driverBus.routeFrom.toLowerCase().includes(pickup.toLowerCase()) &&
+                driverBus.routeTo.toLowerCase().includes(destination.toLowerCase())
+            ) {
+                showBus = true;
+                matchedPickup = driverBus.routeFrom;
+                matchedDest = driverBus.routeTo;
+            } else if (Array.isArray(driverBus.routeStops) && driverBus.routeStops.length > 0) {
+                // Partial/substring and case-insensitive match for stops
+                const stopsLower = driverBus.routeStops.map(s => s.toLowerCase());
+                // Find first stop containing pickup
+                let pickupIdx = -1, destIdx = -1;
+                for (let i = 0; i < stopsLower.length; i++) {
+                    if (stopsLower[i].includes(pickup.toLowerCase())) { pickupIdx = i; break; }
+                }
+                if (pickupIdx !== -1) {
+                    for (let i = pickupIdx + 1; i < stopsLower.length; i++) {
+                        if (stopsLower[i].includes(destination.toLowerCase())) { destIdx = i; break; }
+                    }
+                }
+                if (pickupIdx !== -1 && destIdx !== -1 && pickupIdx < destIdx) {
+                    showBus = true;
+                    matchedPickup = driverBus.routeStops[pickupIdx];
+                    matchedDest = driverBus.routeStops[destIdx];
+                }
+            }
+        }
+        if (showBus) {
             html += `<div class="route-card">
                 <div class="route-info">
-                    <span class="route-name">${r.route}</span>
-                    <span class="route-desc">${r.from} - ${r.to}</span>
+                    <span class="route-name">${driverBus.routeNumber}</span>
+                    <span class="route-desc">${matchedPickup} - ${matchedDest}</span>
                 </div>
                 <div class="route-meta">
-                    <span>${r.duration}</span>
-                    <span>${r.frequency}</span>
+                    <span>Live</span>
                 </div>
-                <div class="route-price">Price: <strong>${r.price}</strong></div>
-                <button class="show-bus-location-btn" data-route="${r.route}" style="margin-top:0.5rem;background:#4e73df;color:#fff;border:none;padding:0.4rem 1rem;border-radius:5px;cursor:pointer;">Show Live Bus Location</button>
+                <div class="route-price">Bus: <strong>${driverBus.busPlate}</strong></div>
+                <button class="show-bus-location-btn" style="margin-top:0.5rem;background:#4e73df;color:#fff;border:none;padding:0.4rem 1rem;border-radius:5px;cursor:pointer;">Show Live Bus Location</button>
             </div>`;
-        });
+        } else {
+            html += '<div>No live buses found for this route.</div>';
+        }
         html += '</div>';
         resultsDiv.innerHTML = html;
-        // Add event listeners to show bus location buttons
-        document.querySelectorAll('.show-bus-location-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                showBusLocationOnMap(this.getAttribute('data-route'));
-            });
-        });
     } else {
         resultsDiv.innerHTML = '<p style="color:red">Invalid search. Please go back and enter both locations.</p>';
     }
@@ -247,6 +255,17 @@
     if (systemStatus) {
         systemStatus.innerHTML = '<span>All Systems Operational</span><span>Last updated: Just now • Next update in 30s</span>';
     }
+
+    // Add event listener for live location button
+    setTimeout(function() {
+        const btn = document.querySelector('.show-bus-location-btn');
+        if (btn) {
+            btn.addEventListener('click', function() {
+                alert('Live bus location feature coming soon!');
+                // Here you can implement map logic or fetch location if available
+            });
+        }
+    }, 0);
     </script>
 </body>
 </html>

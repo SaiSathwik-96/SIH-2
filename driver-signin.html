@@ -18,35 +18,32 @@
         </form>
     </div>
     <script> 
-    let driverusername = '';  
-    let password = '';
-
-    let usernameelement = document.getElementById('username');
-    let passwordelement = document.getElementById('password');
-
-    usernameelement.addEventListener('input', function(e) {
-        driverusername = e.target.value;
-    });     
-
-    passwordelement.addEventListener('input', function(e) {
-        password = e.target.value;
-    });
-
     document.getElementById('driverSignInForm').addEventListener('submit', function(e) {
-        e.preventDefault(); 
+        e.preventDefault();
+        const driverusername = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value;
+        if (!driverusername || !password) {
+            alert('Please enter both phone number and password.');
+            return;
+        }
         // API call to check driver
-        fetch(`https://mohanvamsiybulenjsivsfxnp.drops.nxtwave.tech/driverdetails/${driverusername}`)
+        fetch(`https://backendrootmate.onrender.com/driverdetails/${driverusername}`)
             .then(response => response.json())
             .then(data => {
                 console.log("Driver Data:", data);
-                if ( data.Password === password) {
+                if (data.PASSWORD === password) {
+                    // Store phone number for profile page
+                    localStorage.setItem('driverPhone', driverusername);
                     // Redirect on success
                     window.location.href = 'driver.html';
                 } else {
                     alert("Invalid Credentials");
                 }
             })
-            .catch(error => console.error("Error:", error));
+            .catch(error => {
+                console.error("Error:", error);
+                alert("Error connecting to server. Please try again later.");
+            });
     });
 </script>
 </body>
