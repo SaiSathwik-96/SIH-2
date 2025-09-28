@@ -37,6 +37,12 @@
     <button id="end-journey-btn" style="margin-top:1rem;background:#d9534f;color:#fff;border:none;padding:0.6rem 1.5rem;border-radius:6px;cursor:pointer;">End Journey</button>
   </div>
   <script>
+    // Bus stops for specific route numbers
+    const busRoutes = {
+      "219": ["Ameerpet", "SR Nagar", "ESI", "Erragadda", "Kukatpally", "Miyapur"],
+      "100V": ["Secunderabad", "Begumpet", "Ameerpet", "Panjagutta", "Lakdikapul", "Mehdipatnam"],
+      // Add more routes and stops as needed
+    };
     // Profile dropdown logic (profile link now in dropdown)
     document.addEventListener('DOMContentLoaded', function() {
       var icon = document.getElementById('profileIcon');
@@ -163,16 +169,62 @@
       if (!busPlate || !routeNumber || !routeFrom || !routeTo) return;
       saveDriverBusDetails({ busPlate, routeNumber, routeFrom, routeTo, routeStops });
       document.getElementById('status').textContent = 'Bus details saved!';
+
+        // Start sending location to API every 10 seconds
+        if (window.locationInterval) clearInterval(window.locationInterval);
+        window.locationInterval = setInterval(function() {
+          if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(pos) {
+              const lat = pos.coords.latitude;
+              const lon = pos.coords.longitude;
+              fetch(`https://rootmatelocations.onrender.com/sendlocation/start/${encodeURIComponent(busPlate)}`,
+                {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ latitude: lat, longitude: lon })
+                }
+              ).then(res => res.json()).then(data => {
+                document.getElementById('status').textContent = 'Location sent!';
+              }).catch(err => {
+                document.getElementById('status').textContent = 'Error sending location.';
+              });
+            });
+          }
+        }, 10000); // 10 seconds
     };
 
     // End Journey button logic
     document.getElementById('end-journey-btn').onclick = function() {
       clearDriverBusDetails();
+      const busPlate = document.getElementById('bus-plate').value.trim();
       document.getElementById('bus-plate').value = '';
       document.getElementById('route-number').value = '';
       document.getElementById('route-from').value = '';
       document.getElementById('route-to').value = '';
       document.getElementById('status').textContent = 'Journey ended. Bus details cleared.';
+      // Stop sending location interval
+      if (window.locationInterval) {
+        clearInterval(window.locationInterval);
+        window.locationInterval = null;
+      }
+      // Send a single stop request to API
+      if (navigator.geolocation && busPlate) {
+        navigator.geolocation.getCurrentPosition(function(pos) {
+          const lat = pos.coords.latitude;
+          const lon = pos.coords.longitude;
+          fetch(`https://rootmatelocations.onrender.com/sendlocation/stop/${encodeURIComponent(busPlate)}`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ latitude: lat, longitude: lon })
+            }
+          ).then(res => res.json()).then(data => {
+            document.getElementById('status').textContent += ' Location sharing stopped.';
+          }).catch(err => {
+            document.getElementById('status').textContent += ' Error stopping location.';
+          });
+        });
+      }
     };
   </script>
 </body>
